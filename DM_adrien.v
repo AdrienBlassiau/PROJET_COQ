@@ -223,10 +223,11 @@ Admitted.
 (** Exercice 2  (Implantation des multi-ensembles) **)
 
 
-Variable T : Type.
+(** Variable T : Type.**)
+Definition T := nat.
 
-Hypothesis T_eq_dec : forall (x y : T), {x=y} + {~x=y}.
-
+(** Hypothesis T_eq_dec : forall (x y : T), {x=y} + {~x=y}.**)
+Definition T_eq_dec := Nat.eq_dec.
 
 (** Rappel :
 
@@ -242,21 +243,19 @@ Definition multiset := list (T*nat).
 Definition empty : multiset := nil.
 Print empty.
 
+(** TEST
+  Eval compute in empty.
+**)
+
+
 (** singleton x crée le multi-ensemble qui ne contient que x en un seul exemplaire **)
 Definition singleton (x:T) : multiset := cons (x,1) empty.
 Print singleton.
 
-(** member x s retourne la valeur true si x a au moins une occurrence dans s, false sinon. **)
-Fixpoint member (x:T) (s:multiset) : bool := 
-  match s with
-  | nil => false
-  | (x',occ) :: l' => (
-    match (T_eq_dec x x') with
-    | left _ => true
-    | right _ => member x l'
-   end)
-  end.
-Print member.
+(** TEST
+  Eval compute in (singleton 2). 
+**)
+
 
 (** add x n s ajoute, au multi-ensemble s, n occurrences de l’élément x dans s **)
 Fixpoint add (x:T) (n:nat) (s:multiset) : multiset := 
@@ -270,6 +269,33 @@ Fixpoint add (x:T) (n:nat) (s:multiset) : multiset :=
   end.
 Print add.
 
+(** TESTS
+  Eval compute in (add 2 3 empty).
+  Eval compute in (add 2 4 (add 2 5 empty)).
+  Eval compute in (add 3 3 (singleton 2)). 
+**)
+
+
+(** member x s retourne la valeur true si x a au moins une occurrence dans s, false sinon. **)
+Fixpoint member (x:T) (s:multiset) : bool := 
+  match s with
+  | nil => false
+  | (x',occ) :: l' => (
+    match (T_eq_dec x x') with
+    | left _ => true
+    | right _ => member x l'
+   end)
+  end.
+Print member.
+
+(** TESTS
+  Eval compute in (member 2 (add 2 3 empty)).
+  Eval compute in (member 3 (add 2 5 empty)).
+  Eval compute in (member 1 (singleton 2)). 
+  Eval compute in (member 1 empty).
+**)
+
+
 (** union fait l’union de deux multi-ensembles. **)
 Fixpoint union (s1:multiset) (s2:multiset) : multiset :=
   match s1 with
@@ -277,6 +303,14 @@ Fixpoint union (s1:multiset) (s2:multiset) : multiset :=
   | (x',occ) :: l' => union l' (add x' occ s2)
   end.
 Print union.
+
+(** TESTS
+  Eval compute in (union (add 2 3 empty) (add 2 4 empty)).
+  Eval compute in (union (add 2 3 (add 4 5 empty)) (add 2 3 empty)).
+  Eval compute in (union (add 2 3 empty) empty).
+  Eval compute in (union empty empty).
+**)
+
 
 (** muliplicity x s retourne le nombre d’occurrences de x dans s **)
 Fixpoint multiplicity (x:T) (s:multiset) : nat := 
@@ -290,6 +324,12 @@ Fixpoint multiplicity (x:T) (s:multiset) : nat :=
   end.
 Print multiplicity.
 
+(** TESTS
+  Eval compute in (multiplicity 2 (add 2 7 empty)).
+  Eval compute in (multiplicity 3 (add 2 7 empty)).
+  Eval compute in (multiplicity 3 empty).
+**)
+
 
 (** removeOne x s retourne le multi-ensemble s avec une occurrence de moins pour x. Si s ne contient pas x, le multi-ensemble résultat est s. **)
 
@@ -300,13 +340,24 @@ Fixpoint removeOne (x:T) (s:multiset) : multiset :=
     match (T_eq_dec x x') with
     | left _ => (
       match (le_lt_dec occ 1) with
-      | left _ => (x', occ-1) :: l'
-      | right _ => l'
+      | left _ => l'
+      | right _ => (x', occ-1) :: l'
       end)
-    | right _ => removeOne x l'
+    | right _ => (x', occ) :: (removeOne x l')
    end)
   end.
 Print removeOne.
+  
+(** TESTS
+  Eval compute in (removeOne 2 (add 2 7 empty)).
+  Eval compute in (removeOne 2 (add 2 2 (add 3 5 empty))).
+  Eval compute in (removeOne 2 (add 6 5 (add 2 2 (add 3 5 empty)))).
+  Eval compute in (removeOne 2 (add 2 1 (add 3 5 empty))).
+  Eval compute in (removeOne 2 (add 6 5 (add 2 1 (add 3 5 empty)))).
+  Eval compute in (removeOne 3 (add 2 7 empty)).
+  Eval compute in (removeOne 3 empty).
+**)
+
 
 (** removeAll x s retourne le mult-ensemble s o`u x n’apparait plus. Si s ne contient pas x, le multiensemble r´esultat est s. **)
 
@@ -321,13 +372,25 @@ Fixpoint removeAll (x:T) (s:multiset) : multiset :=
   end.
 Print removeAll.
 
+(** TESTS
+  Eval compute in (removeAll 2 (add 2 7 empty)).
+  Eval compute in (removeAll 2 (add 2 2 (add 3 5 empty))).
+  Eval compute in (removeAll 2 (add 6 5 (add 2 2 (add 3 5 empty)))).
+  Eval compute in (removeAll 2 (add 2 1 (add 3 5 empty))).
+  Eval compute in (removeAll 2 (add 6 5 (add 2 1 (add 3 5 empty)))).
+  Eval compute in (removeAll 3 (add 2 7 empty)).
+  Eval compute in (removeAll 3 empty).
+**)
+
+(** Ce prédicat spécifie qu’un élément appartient à un multi-ensemble dès lors 
+qu’il en existe une occurrence **)
 Inductive InMultiset : T -> multiset -> Prop :=
   | inMultiset_cons : forall x v l, InMultiset x (cons (x,v) l)
   | inMultiset_tail : forall x y l, InMultiset x l -> InMultiset x (cons y l).
 
+(** Ce prédicat spécifie qu’une liste qui représente un multi-ensemble est bien formée, c'est-à-dire que tout élément de T apparaît dans au plus un seul couple et que tous les nombres d’occurrences sont des entiers naturels non nuls. **)
 Inductive wf (l: multiset) : Prop :=
   | wf_intro : (forall x, member x (removeAll x l) = false /\ (member x l = true -> (multiplicity x l) > 0)) -> wf l.
-
 
 Theorem empty_wf : wf empty.
 Proof.
