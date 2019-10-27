@@ -785,7 +785,7 @@ Print add_2.
 
 (** member_2 x s retourne la valeur true si x a au moins une occurrence dans s, false sinon. **)
 Definition member_2 (x:T) (s:multiset_2) : bool := 
-  match le_lt_dec (s x) 0 with
+  match T_eq_dec (s x) 0 with
   | left _ => false
   | right _ => true
   end.
@@ -864,7 +864,51 @@ Print removeAll_2.
   Eval compute in ((removeAll_2 3 empty_2) 3).
 **)
 
+(** Ce prédicat spécifie qu’un élément appartient à un multi-ensemble dès lors 
+qu’il en existe une occurrence **)
+Inductive InMultiset_2 (x:T) (l:multiset_2) : Prop := 
+  | inMultiset_2_intro : member_2 x l = true -> InMultiset_2 x l.
 
+Theorem x_not_in_empty_Multiset_2 : forall (x : T), ~InMultiset_2 x empty_2.
+Proof.
+ intros x.
+ unfold not.
+ intros H.
+ inversion H.
+ discriminate H0.
+Qed.
+
+Theorem x_equal_y_2 : forall x y , InMultiset_2 y (singleton_2 x) <-> x = y.
+Proof.
+ intros x y.
+ unfold iff.
+ split.
+ intros H.
+ inversion H.
+ unfold member_2 in H0.
+ unfold singleton_2 in H0.
+ case_eq (T_eq_dec y x).
+ intros H1 H2.
+ rewrite H1 in H0.
+ destruct H0.
+ omega.
+ intros H1 H2.
+ rewrite H2 in H0.
+ simpl in H0.
+ discriminate H0.
+ intros H0.
+ apply inMultiset_2_intro.
+ unfold member_2.
+ unfold singleton_2.
+ rewrite H0.
+ destruct (T_eq_dec y y).
+ destruct (T_eq_dec 1 0).
+ discriminate e0.
+ reflexivity.
+ destruct (T_eq_dec 0 0).
+ contradiction.
+ reflexivity.
+Qed.
 
 
 
