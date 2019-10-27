@@ -238,6 +238,10 @@ Inductive list (A:Type) : Type :=
 
 **)
 
+(*****************************************************************************)
+(****2.1 Implantation des multi-ensembles à l’aide de listes d’association****)
+(*****************************************************************************)
+
 Definition multiset := list (T*nat).
 
 (** empty est le multiset vide. **)
@@ -729,13 +733,136 @@ simpl.
 Admitted.
 
 
+(**********************************************************)
+(****2.2 Implantation Fonctionnelle des multi-ensembles****)
+(**********************************************************)
+
+Definition multiset_2 := T -> nat.
+
+Print multiset_2.
+
+(** empty_2 est le multiset vide. **)
+Definition empty_2 : multiset_2 := (fun a:T => 0).
+
+Print empty_2.
+
+(** TEST
+  Eval compute in empty_2.
+**)
 
 
+(** singleton_2 x crée le multi-ensemble qui ne contient que x en un seul exemplaire **)
+Definition singleton_2 (x:T) : multiset_2 := fun a:T => 
+  match T_eq_dec a x with
+  | left _ => 1
+  | right _ => 0
+  end.
+
+Print singleton_2.
+
+(** TEST
+  Eval compute in ((singleton_2 2) 3).
+  Eval compute in ((singleton_2 2) 2).
+**)
 
 
+(** add_2 x n s ajoute, au multi-ensemble s, n occurrences de l’élément x dans s **)
+Definition add_2 (x:T) (n:nat) (s:multiset_2) : multiset_2 := fun a:T => 
+  match T_eq_dec a x with
+  | left _ => s x + n
+  | right _ => s a
+  end.
+
+Print add_2.
+
+(** TEST
+  Eval compute in ((add_2 3 4 (add_2 2 3 (singleton_2 1))) 3).
+  Eval compute in ((add_2 3 4 (add_2 2 3 (singleton_2 1))) 3).
+  Eval compute in ((add_2 3 4 (add_2 2 3 (singleton_2 1))) 5).
+  Eval compute in ((add_2 3 4 (add_2 2 3 (empty_2))) 1).
+**)
 
 
+(** member_2 x s retourne la valeur true si x a au moins une occurrence dans s, false sinon. **)
+Definition member_2 (x:T) (s:multiset_2) : bool := 
+  match le_lt_dec (s x) 0 with
+  | left _ => false
+  | right _ => true
+  end.
+  
+Print member_2.
 
+(** TESTS
+  Eval compute in (member_2 2 (empty_2)).
+  Eval compute in (member_2 2 (singleton_2 2)).
+  Eval compute in (member_2 3 (singleton_2 2)).
+  Eval compute in (member_2 3 (add_2 3 0 empty_2)).
+  Eval compute in (member_2 3 (add_2 3 1 empty_2)).
+**)
+
+
+(** union_2 fait l’union de deux multi-ensembles. **)
+Definition union_2 (s1:multiset_2) (s2:multiset_2) : multiset_2 := (fun a:T => s1 a + s2 a).
+
+Print union_2.
+
+(** TESTS
+  Eval compute in ((union_2 (add_2 2 3 empty_2) (add_2 2 4 empty_2)) 2).
+  Eval compute in ((union_2 (add_2 2 3 (add_2 4 5 empty_2)) (add_2 2 3 empty_2)) 4).
+  Eval compute in ((union_2 (add_2 2 3 empty_2) empty_2) 2).
+  Eval compute in ((union_2 empty_2 empty_2) 1).
+**)
+
+
+(** multiplicity_2 x s retourne le nombre d’occurrences de x dans s **)
+Definition multiplicity_2 (x:T) (s:multiset_2) : nat := s x.
+Print multiplicity_2.
+
+(** TESTS
+  Eval compute in (multiplicity_2 2 (add_2 2 7 empty_2)).
+  Eval compute in (multiplicity_2 3 (add_2 2 7 empty_2)).
+  Eval compute in (multiplicity_2 3 empty_2).
+**)
+
+
+(** removeOne_2 x s retourne le multi-ensemble s avec une occurrence de moins pour x. Si s ne contient pas x, le multi-ensemble résultat est s. **)
+Definition removeOne_2 (x:T) (s:multiset_2) : multiset_2 := fun a:T => 
+  match T_eq_dec a x with
+  | left _ => if member_2 x s then s x - 1 else 0
+  | right _ => s a
+  end.
+Print removeOne_2.
+
+(** TESTS
+  Eval compute in ((removeOne_2 2 (add_2 2 7 empty_2)) 2).
+  Eval compute in ((removeOne_2 2 (add_2 2 2 (add_2 3 5 empty_2))) 2).
+  Eval compute in ((removeOne_2 2 (add_2 6 5 (add_2 2 2 (add_2 3 5 empty_2)))) 2).
+  Eval compute in ((removeOne_2 2 (add_2 2 1 (add_2 3 5 empty_2))) 2).
+  Eval compute in ((removeOne_2 2 (add_2 6 5 (add_2 2 1 (add_2 3 5 empty_2)))) 2).
+  Eval compute in ((removeOne_2 3 (add_2 2 7 empty_2)) 3).
+  Eval compute in ((removeOne_2 3 empty_2) 3).
+**)
+
+
+(** removeAll_2 x s retourne le mult-ensemble s o`u x n’apparait plus. Si s ne contient pas x, le multiensemble r´esultat est s. **)
+
+Definition removeAll_2 (x:T) (s:multiset_2) : multiset_2 := fun a:T => 
+  match T_eq_dec a x with
+  | left _ => 0
+  | right _ => s a
+  end.
+
+Print removeAll_2.
+
+(** TESTS
+  Eval compute in ((removeAll_2 2 (add_2 2 7 empty_2)) 2).
+  Eval compute in ((removeAll_2 2 (add_2 2 2 (add_2 3 5 empty_2))) 2).
+  Eval compute in ((removeAll_2 2 (add_2 6 5 (add_2 2 2 (add_2 3 5 empty_2)))) 2).
+  Eval compute in ((removeAll_2 2 (add_2 2 1 (add_2 3 5 empty_2))) 2).
+  Eval compute in ((removeAll_2 2 (add_2 6 5 (add_2 2 1 (add_2 3 5 empty_2)))) 2).
+  Eval compute in ((removeAll_2 3 (add_2 2 7 empty_2)) 2).
+  Eval compute in ((removeAll_2 3 empty_2) 3).
+**)
 
 
 
