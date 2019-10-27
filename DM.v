@@ -562,7 +562,7 @@ intros H2.
 inversion H2.
 Admitted.
 
-Theorem x_not_in_empty_Multiset : forall (x : T), ~InMultiset x empty.
+Theorem proof_1 : forall (x : T), ~InMultiset x empty.
 Proof.
  intros x.
  unfold not.
@@ -571,7 +571,7 @@ Proof.
  discriminate H0.
 Qed.
 
-Theorem x_equal_y : forall x y , InMultiset y (singleton x) <-> x = y.
+Theorem proof_2 : forall x y , InMultiset y (singleton x) <-> x = y.
 Proof.
  intros x y.
  unfold iff.
@@ -598,7 +598,7 @@ Proof.
 Qed.
 
 
-Theorem x_multiplicity_1 :forall x, multiplicity x (singleton x) = 1.
+Theorem proof_3 :forall x, multiplicity x (singleton x) = 1.
 Proof.
  intros x.
  unfold singleton.
@@ -608,7 +608,7 @@ Proof.
  contradiction.
 Qed.
 
-Theorem wf_and_member : forall x s, wf s -> (member x s = true <-> InMultiset x s).
+Theorem proof_4 : forall x s, wf s -> (member x s = true <-> InMultiset x s).
 Proof.
 intros x s well_formed_proof_of_l.
 unfold iff.
@@ -624,7 +624,7 @@ inversion H.
 exact H0.
 Qed.
 
-Theorem add_x_in_s : forall x n s, n > 0 -> InMultiset x (add x n s).
+Theorem proof_5 : forall x n s, n > 0 -> InMultiset x (add x n s).
 Proof.
  intros x n s H.
  apply inMultiset_intro.
@@ -680,7 +680,7 @@ Proof.
  exact IHs.
 Qed.
 
-Theorem x_diff_y_multiset : forall x n y s, x <> y -> (InMultiset y (add x n s) <-> InMultiset y s).
+Theorem proof_6 : forall x n y s, x <> y -> (InMultiset y (add x n s) <-> InMultiset y s).
 Proof.
  intros x n y s.
  intros H.
@@ -688,7 +688,7 @@ Proof.
  split.
 Admitted.
 
-Theorem wf_and_multiplicity : forall x s, wf s -> (multiplicity x s = 0 <-> ~InMultiset x s).
+Theorem proof_7 : forall x s, wf s -> (multiplicity x s = 0 <-> ~InMultiset x s).
 Proof.
 intros x s well_formed_proof_of_l.
 unfold iff.
@@ -710,14 +710,14 @@ destruct H3.
 Admitted.
 
 
-Theorem multiplicity_and_add : forall x n s, multiplicity x (add x n s) = n + (multiplicity x s).
+Theorem proof_8 : forall x n s, multiplicity x (add x n s) = n + (multiplicity x s).
 Proof.
 intros x n s.
 induction n.
 simpl.
 Admitted.
 
-Theorem multiplicity_x_y : forall x n y s, x <> y -> wf s ->multiplicity y (add x n s) = multiplicity y s.
+Theorem proof_9 : forall x n y s, x <> y -> wf s ->multiplicity y (add x n s) = multiplicity y s.
 Proof.
 intros x n y s H H2.
 induction s.
@@ -869,7 +869,7 @@ qu’il en existe une occurrence **)
 Inductive InMultiset_2 (x:T) (l:multiset_2) : Prop := 
   | inMultiset_2_intro : member_2 x l = true -> InMultiset_2 x l.
 
-Theorem x_not_in_empty_Multiset_2 : forall (x : T), ~InMultiset_2 x empty_2.
+Theorem proof_1_2 : forall (x : T), ~InMultiset_2 x empty_2.
 Proof.
  intros x.
  unfold not.
@@ -878,7 +878,7 @@ Proof.
  discriminate H0.
 Qed.
 
-Theorem x_equal_y_2 : forall x y , InMultiset_2 y (singleton_2 x) <-> x = y.
+Theorem proof_2_2 : forall x y , InMultiset_2 y (singleton_2 x) <-> x = y.
 Proof.
  intros x y.
  unfold iff.
@@ -909,6 +909,108 @@ Proof.
  contradiction.
  reflexivity.
 Qed.
+
+Theorem proof_3_2 :forall x, multiplicity_2 x (singleton_2 x) = 1.
+Proof.
+ intros x.
+ unfold multiplicity_2.
+ unfold singleton_2.
+ destruct (T_eq_dec x x).
+ reflexivity.
+ omega.
+Qed.
+
+Theorem proof_4_2 : forall x s, member_2 x s = true <-> InMultiset_2 x s.
+Proof.
+intros x s.
+unfold iff.
+split.
+intros H.
+apply inMultiset_2_intro.
+exact H.
+intros H.
+inversion H.
+exact H0.
+Qed.
+
+Theorem proof_5_2 : forall x n s, n > 0 -> InMultiset_2 x (add_2 x n s).
+Proof.
+intros x n s.
+intros H.
+apply inMultiset_2_intro.
+unfold member_2.
+unfold add_2.
+case_eq (T_eq_dec x x).
+intros e H1.
+case_eq (T_eq_dec (s x + n) 0).
+intros e0 H2.
+omega.
+intros n0 H2.
+reflexivity.
+intros n0 H2.
+contradiction n0.
+reflexivity.
+Qed.
+
+Theorem proof_6_2 : forall x n y s, x <> y -> (InMultiset_2 y (add_2 x n s) <-> InMultiset_2 y s).
+Proof.
+ intros x n y s.
+ intros H.
+ unfold iff.
+ split.
+ intros H2.
+ inversion H2.
+ apply inMultiset_2_intro.
+ unfold member_2.
+ unfold member_2 in H0.
+ case_eq (T_eq_dec (s y) 0).
+ intros e H3.
+ unfold add_2 in H0.
+ case_eq (T_eq_dec y x).
+ intros e0.
+ omega.
+ intros n0 H4.
+ rewrite H4 in H0.
+ rewrite e in H0.
+ simpl in H0.
+ discriminate H0.
+ intros n0 H3.
+ reflexivity.
+ intros H1.
+ inversion H1.
+ unfold member_2 in H0.
+ apply inMultiset_2_intro.
+ unfold member_2.
+ unfold add_2.
+ case_eq (T_eq_dec y x ).
+ intros e H2.
+ omega.
+ intros n0 H2.
+ exact H0.
+Qed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
