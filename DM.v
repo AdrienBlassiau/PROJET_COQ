@@ -1304,8 +1304,8 @@ Proof.
  case_eq (T_eq_dec x x).
  reflexivity.
  intros n H.
- unfold not in n.
-Admitted.
+ contradiction.
+Qed.
 
 Theorem proof_4_2 : forall x s, member_2 x s = true <-> InMultiset_2 x s.
 Proof.
