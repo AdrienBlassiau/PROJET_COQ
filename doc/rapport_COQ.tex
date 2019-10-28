@@ -1,0 +1,646 @@
+\documentclass{report}
+\usepackage{natbib}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{eurosym}
+\usepackage{fullpage}
+\usepackage{coqdoc}
+\usepackage{chngcntr}
+\usepackage{amsmath,amssymb}
+\usepackage{url}
+\usepackage[hmargin=2cm, vmargin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage[table,xcdraw]{xcolor}
+
+\usepackage{url}
+\usepackage{lmodern}
+\usepackage{minted}
+\usepackage{array}
+\usepackage{fancyvrb}
+\usepackage{alltt}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{lscape}
+\usepackage{tikz}
+\usepackage{varwidth}
+\usepackage{listings}
+\usepackage{calc}
+\usetikzlibrary{shapes,arrows,positioning,calc}
+
+\newsavebox{\BBbox}
+\newenvironment{DDbox}[1]{
+\begin{lrbox}{\BBbox}\begin{minipage}{\linewidth}}
+{\end{minipage}\end{lrbox}\noindent\colorbox{white}{\usebox{\BBbox}} \\
+[.5cm]}
+
+
+\counterwithin*{section}{part}
+\renewcommand*\rmdefault{pag}
+
+\newcommand{\HorizontalLine}{\rule{\linewidth}{0.3mm}}
+
+\makeatletter
+\renewcommand{\thesection}{\@arabic\c@section}
+\makeatother
+
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\newminted{ocaml}{bgcolor=bg,fontsize=\large,linenos=true}
+
+\definecolor{gr}{HTML}{C0C0C0}
+\definecolor{no}{HTML}{000000}
+\definecolor{or}{HTML}{F66B03}
+\definecolor{vf}{HTML}{016401}
+\definecolor{ro}{HTML}{FF0002}
+\definecolor{sa}{HTML}{FFCCC9}
+\definecolor{bf}{HTML}{00019B}
+\definecolor{ja}{HTML}{FCFF31}
+\definecolor{vi}{HTML}{6201C9}
+\definecolor{bc}{HTML}{31FFF8}
+
+%fontfamily=tt,
+%numberblanklines=true,
+%numbersep=5pt,
+%gobble=0,
+%frame=leftline,
+%framerule=0.4pt,
+%framesep=2mm,
+%funcnamehighlighting=true,
+%tabsize=4,
+%obeytabs=false,
+%mathescape=false
+%samepage=false,
+%showspaces=false,
+%showtabs =false,
+%texcl=false,
+
+\definecolor{bash}{rgb}{0.95,0.95,0.95}
+\newminted{bash}{bgcolor=bash,fontsize=\large,linenos=true}
+
+%fontfamily=tt,
+%numberblanklines=true,
+%numbersep=5pt,
+%gobble=0,
+%frame=leftline,
+%framerule=0.4pt,
+%framesep=2mm,
+%funcnamehighlighting=true,
+%tabsize=4,
+%obeytabs=false,
+%mathescape=false
+%samepage=false,
+%showspaces=false,
+%showtabs =false,
+%texcl=false,
+
+\definecolor{myred}{RGB}{229, 34, 47}
+
+\title{Rapport du DM de Coq}
+\author{Adrien BLASSIAU\\Corentin JUVIGNY}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+Avant de commencer les deux exercices, on importe tout d'abord le module \texttt{List} comme demandé. On importe aussi \texttt{Omega} qui fournit la tactique \textbf{omega} qui se révèle très pratique pour la gestion des expressions arithmétiques. À noter que l'on peut très bien faire sans (en utilisant des lemmes du module \texttt{Arith.Gt}, \texttt{Arith.Lt}, etc) mais cela permet de réduire de quelques lignes les preuves ...\\\\
+\noindent Les théorèmes admis sont notés en \textcolor{red}{rouge}.
+
+\section{Exercice 1 : Listes et comptage}
+
+Dans la suite on travaille avec un type A quelconque muni d’une égalité décidable. Pour les tests, on utilise nat (ils sont commentés dans le fichier .v).
+\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Variable} \coqdocvar{A} : \coqdockw{Type}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Hypothesis} \coqdocvar{dec\_A} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{x} \coqdocvar{y} : \coqdocvar{A}), (\{\coqdocvar{x}=\coqdocvar{y}\}+\{\~{}\coqdocvar{x}=\coqdocvar{y}\}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 1}
+
+occ prend en argument un élément x de type A et une liste l de type (list A) et retourne le nombre d’occurrences de x dans l. Elle a la signature suivante :
+
+\noindent
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{occ} :
+\coqdocvar{A} \ensuremath{\rightarrow}
+\coqdocvar{list} \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{nat}
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 2}
+
+On démontre le théorème suivant :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{occ\_app} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{x} : \coqdocvar{A}) \coqdocvar{l1} \coqdocvar{l2},
+\coqdocvar{occ} \coqdocvar{x} (\coqdocvar{app} \coqdocvar{l1} \coqdocvar{l2}) = (\coqdocvar{occ} \coqdocvar{x} \coqdocvar{l1}) + (\coqdocvar{occ} \coqdocvar{x} \coqdocvar{l2}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 3}
+
+On démontre le théorème suivant :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{occ\_filter\_2} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{P} : \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{bool}) (\coqdocvar{a} : \coqdocvar{A}) \coqdocvar{l},
+\coqdocnoindent
+\coqdocvar{occ} \coqdocvar{a} (\coqdocvar{filter} \coqdocvar{P} \coqdocvar{l}) = \coqdockw{if} (\coqdocvar{P} \coqdocvar{a}) \coqdockw{then} \coqdocvar{occ} \coqdocvar{a} \coqdocvar{l} \coqdockw{else} 0.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 4}
+
+On démontre le théorème suivant :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{occ\_map} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{y}:\coqdocvar{A}) (\coqdocvar{z}:\coqdocvar{A}), \coqdocvar{y}\ensuremath{\not=}\coqdocvar{z} \ensuremath{\rightarrow} \coqdoctac{\ensuremath{\exists}} (\coqdocvar{f} : \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{A}) (\coqdocvar{x} : \coqdocvar{A}) (\coqdocvar{l} : \coqdocvar{list} \coqdocvar{A}),
+\coqdocnoindent
+\coqdocvar{occ} (\coqdocvar{f} \coqdocvar{x}) (\coqdocvar{map} \coqdocvar{f} \coqdocvar{l}) \ensuremath{\not=} \coqdocvar{occ} \coqdocvar{x} \coqdocvar{l}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 5}
+
+On démontre le théorème de l'énoncé en deux temps, en utilisant un petit lemme intermédiaire :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Lemma} \coqdocvar{mem\_diff} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{l} : \coqdocvar{list} \coqdocvar{A}) (\coqdocvar{x} : \coqdocvar{A}) (\coqdocvar{y} : \coqdocvar{A}), \coqdocvar{mem} \coqdocvar{x} (\coqdocvar{cons} \coqdocvar{y} \coqdocvar{l}) \ensuremath{\rightarrow} \coqdocvar{x} \ensuremath{\not=} \coqdocvar{y} \ensuremath{\rightarrow}
+\coqdocnoindent
+\coqdocvar{mem} \coqdocvar{x} \coqdocvar{l}.\coqdoceol
+\coqdocemptyline
+
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{mem\_null\_1} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{l} : \coqdocvar{list} \coqdocvar{A}) (\coqdocvar{x} : \coqdocvar{A}), \coqdocvar{occ} \coqdocvar{x} \coqdocvar{l} = 0 \ensuremath{\rightarrow} \~{}(\coqdocvar{mem} \coqdocvar{x} \coqdocvar{l}).\coqdoceol
+\coqdocemptyline
+
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{mem\_null\_2} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{l} : \coqdocvar{list} \coqdocvar{A}) (\coqdocvar{x} : \coqdocvar{A}), \~{}(\coqdocvar{mem} \coqdocvar{x} \coqdocvar{l}) \ensuremath{\rightarrow} \coqdocvar{occ} \coqdocvar{x} \coqdocvar{l} = 0.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+
+\paragraph{Question 6}
+
+On démontre le théorème de l'énoncé en deux temps. Nous ne sommes pas parvenus à démonter l'un des sens du théorème :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{doublon\_1} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{l} : \coqdocvar{list} \coqdocvar{A}) (\coqdocvar{x} : \coqdocvar{A}), \coqdocvar{nodup} \coqdocvar{l} \ensuremath{\rightarrow} \coqdocvar{occ} \coqdocvar{x} \coqdocvar{l} \ensuremath{\le} 1.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\begin{coqdoccode}
+
+\coqdocnoindent
+\textcolor{red}{
+\coqdockw{Theorem} \coqdocvar{doublon\_2} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{l} : \coqdocvar{list} \coqdocvar{A}) (\coqdocvar{x} : \coqdocvar{A}), \coqdocvar{occ} \coqdocvar{x} \coqdocvar{l} \ensuremath{\le} 1 \ensuremath{\rightarrow} \coqdocvar{nodup} \coqdocvar{l}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline}
+\end{coqdoccode}
+
+\section{Exercice 2 : Implantation des multi-ensembles}
+
+Dans la suite on travaille avec un type T quelconque muni d’une égalité décidable. Pour les tests, on utilise nat (ils sont commentés dans le fichier .v).
+
+\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Variable} \coqdocvar{T} : \coqdockw{Type}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Hypothesis} \coqdocvar{T\_eq\_dec} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{x} \coqdocvar{y} : \coqdocvar{T}), \{\coqdocvar{x}=\coqdocvar{y}\} + \{\~{}\coqdocvar{x}=\coqdocvar{y}\}.\coqdoceol
+\coqdocemptyline
+
+\end{coqdoccode}
+
+\subsection{Implantation des multi-ensembles à l’aide de listes d’association\\}
+
+\paragraph{Question 1}
+
+On définit ici un multi-ensemble comme une liste de couples (élément, cardinalité), de la manière suivante :
+
+\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{multiset} := \coqdocvar{list} (\coqdocvar{T}\ensuremath{\times}\coqdocvar{nat}).\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+
+\noindent Voici les signatures des différentes fonctions demandées dans l'énoncé :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{empty} :
+\coqdocvar{multiset}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{singleton} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{add} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{nat} \ensuremath{\rightarrow}
+\coqdocvar{multiset} \ensuremath{\rightarrow}
+\coqdocvar{multiset}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{member} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset} \ensuremath{\rightarrow}
+\coqdocvar{bool}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{union} :
+\coqdocvar{multiset} \ensuremath{\rightarrow}
+\coqdocvar{multiset} \ensuremath{\rightarrow}
+\coqdocvar{multiset}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{multiplicity} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset} \ensuremath{\rightarrow}
+\coqdocvar{nat}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{removeOne} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset} \ensuremath{\rightarrow}
+\coqdocvar{multiset}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{removeAll} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset} \ensuremath{\rightarrow}
+\coqdocvar{multiset}
+\end{coqdoccode}
+
+\paragraph{Question 2}
+
+\paragraph{Question 2. a)}
+
+On définit le préedicat \texttt{InMultiset} de la manière suivante :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{InMultiset} (\coqdocvar{x}:\coqdocvar{T}) (\coqdocvar{l}:\coqdocvar{multiset}) : \coqdockw{Prop} := \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{inMultiset\_intro} : \coqdocvar{member} \coqdocvar{x} \coqdocvar{l} = \coqdocvar{true} \ensuremath{\rightarrow} \coqdocvar{InMultiset} \coqdocvar{x} \coqdocvar{l}.\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 2. b)}
+
+On définit le préedicat \texttt{wf} de la manière suivante :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Inductive} \coqdockw{wf} (\coqdocvar{l}: \coqdocvar{multiset}) : \coqdockw{Prop} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{wf\_intro} : (\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, (\coqdocvar{InMultiset} \coqdocvar{x} (\coqdocvar{removeAll} \coqdocvar{x} \coqdocvar{l}) \ensuremath{\rightarrow} \coqdocvar{False}) \ensuremath{\land} (\coqdocvar{member} \coqdocvar{x} \coqdocvar{l} = \coqdocvar{true} \ensuremath{\rightarrow} (\coqdocvar{multiplicity} \coqdocvar{x} \coqdocvar{l}) > 0)) \ensuremath{\rightarrow} \coqdockw{wf} \coqdocvar{l}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 2. c)}
+
+On démontre maintenant la bonne formation de nos nos différente fonctions. 2 lemmes intermédiaires ont été créés.\\
+Nous ne sommes pas parvenus à démonter cette propriété pour 4 fonctions :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{empty\_wf} : \coqdockw{wf} \coqdocvar{empty}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{singleton\_wf} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{x}:\coqdocvar{T}), \coqdockw{wf} (\coqdocvar{singleton} \coqdocvar{x}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Lemma} \coqdocvar{plus\_n\_0} : \coqdockw{\ensuremath{\forall}} \coqdocvar{n}, \coqdocvar{n} + \coqdocvar{O} = \coqdocvar{n}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Lemma} \coqdocvar{wf\_plus\_n} : \coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{n0} \coqdocvar{n} \coqdocvar{l}, \coqdockw{wf} ((\coqdocvar{t}, \coqdocvar{n0}) :: \coqdocvar{l}) \ensuremath{\rightarrow} \coqdockw{wf} ((\coqdocvar{t}, \coqdocvar{n0}+\coqdocvar{n}) :: \coqdocvar{l}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\textcolor{red}{
+\coqdockw{Theorem} \coqdocvar{add\_wf} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{x}:\coqdocvar{T}) (\coqdocvar{n}:\coqdocvar{nat}) (\coqdocvar{l}: \coqdocvar{multiset}), \coqdockw{wf} \coqdocvar{l} \ensuremath{\rightarrow} \coqdockw{wf} (\coqdocvar{add} \coqdocvar{x} \coqdocvar{n} \coqdocvar{l}).\coqdoceol
+\coqdocemptyline
+}
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\textcolor{red}{
+\coqdockw{Theorem} \coqdocvar{union\_wf} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{l}: \coqdocvar{multiset}) (\coqdocvar{l'}: \coqdocvar{multiset}), \coqdockw{wf} \coqdocvar{l} \ensuremath{\rightarrow} \coqdockw{wf} \coqdocvar{l'} \ensuremath{\rightarrow} \coqdockw{wf} (\coqdocvar{union} \coqdocvar{l} \coqdocvar{l'}).\coqdoceol
+\coqdocemptyline
+}
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\textcolor{red}{
+\coqdockw{Theorem} \coqdocvar{removeOne\_wf}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{x}: \coqdocvar{T}) (\coqdocvar{l}: \coqdocvar{multiset}), \coqdockw{wf} \coqdocvar{l} \ensuremath{\rightarrow} \coqdockw{wf} (\coqdocvar{removeOne} \coqdocvar{x} \coqdocvar{l}).\coqdoceol
+\coqdocemptyline
+}
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\textcolor{red}{
+\coqdockw{Theorem} \coqdocvar{removeAll\_wf}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{x}: \coqdocvar{T}) (\coqdocvar{l}: \coqdocvar{multiset}), \coqdockw{wf} \coqdocvar{l} \ensuremath{\rightarrow} \coqdockw{wf} (\coqdocvar{removeAll} \coqdocvar{x} \coqdocvar{l}).\coqdoceol
+\coqdocemptyline
+}
+\end{coqdoccode}
+
+\paragraph{Question 3}
+
+On démontre maintenant les différents théorèmes indiqués dans l'énoncé. 1 lemme intermédiaire a été créé.\\
+Nous ne sommes pas parvenus à démontrer les deux derniers théorèmes :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_1\_1} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{x} : \coqdocvar{T}), \ensuremath{\lnot}\coqdocvar{InMultiset} \coqdocvar{x} \coqdocvar{empty}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_2\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{y} , \coqdocvar{InMultiset} \coqdocvar{y} (\coqdocvar{singleton} \coqdocvar{x}) \ensuremath{\leftrightarrow} \coqdocvar{x} = \coqdocvar{y}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_3\_1} :\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{multiplicity} \coqdocvar{x} (\coqdocvar{singleton} \coqdocvar{x}) = 1.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_4\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{s}, \coqdockw{wf} \coqdocvar{s} \ensuremath{\rightarrow} (\coqdocvar{member} \coqdocvar{x} \coqdocvar{s} = \coqdocvar{true} \ensuremath{\leftrightarrow} \coqdocvar{InMultiset} \coqdocvar{x} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_5\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}, \coqdocvar{n} > 0 \ensuremath{\rightarrow} \coqdocvar{InMultiset} \coqdocvar{x} (\coqdocvar{add} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_6\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{y} \coqdocvar{s}, \coqdocvar{x} \ensuremath{\not=} \coqdocvar{y} \ensuremath{\rightarrow} (\coqdocvar{InMultiset} \coqdocvar{y} (\coqdocvar{add} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}) \ensuremath{\leftrightarrow} \coqdocvar{InMultiset} \coqdocvar{y} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Lemma} \coqdocvar{proof\_7\_1\_1}: \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{s}, \coqdocvar{multiplicity} \coqdocvar{x} \coqdocvar{s} \ensuremath{\not=} 0 \ensuremath{\rightarrow} \coqdocvar{InMultiset} \coqdocvar{x} \coqdocvar{s}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_7\_1\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{s}, \coqdockw{wf} \coqdocvar{s} \ensuremath{\rightarrow} (\coqdocvar{multiplicity} \coqdocvar{x} \coqdocvar{s} = 0 \ensuremath{\leftrightarrow} \ensuremath{\lnot}\coqdocvar{InMultiset} \coqdocvar{x} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_8\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}, \coqdocvar{multiplicity} \coqdocvar{x} (\coqdocvar{add} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}) = \coqdocvar{n} + (\coqdocvar{multiplicity} \coqdocvar{x} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\textcolor{red}{
+\coqdockw{Theorem} \coqdocvar{proof\_9\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{y} \coqdocvar{s}, \coqdocvar{x} \ensuremath{\not=} \coqdocvar{y} \ensuremath{\rightarrow} \coqdockw{wf} \coqdocvar{s} \ensuremath{\rightarrow}\coqdocvar{multiplicity} \coqdocvar{y} (\coqdocvar{add} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}) = \coqdocvar{multiplicity} \coqdocvar{y} \coqdocvar{s}.\coqdoceol
+\coqdocemptyline
+}
+\end{coqdoccode}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\textcolor{red}{
+\coqdockw{Theorem} \coqdocvar{proof\_10\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{t} \coqdocvar{x}, \coqdockw{wf} \coqdocvar{s} \ensuremath{\rightarrow} \coqdockw{wf} \coqdocvar{t} ->(\coqdocvar{InMultiset} \coqdocvar{x} (\coqdocvar{union} \coqdocvar{s} \coqdocvar{t}) \ensuremath{\leftrightarrow} \coqdocvar{InMultiset} \coqdocvar{x} \coqdocvar{s} \ensuremath{\lor} \coqdocvar{InMultiset} \coqdocvar{x} \coqdocvar{t}).\coqdoceol
+\coqdocemptyline
+}
+\end{coqdoccode}
+
+\paragraph{Question 4}
+
+On démontre maintenant quelques théorèmes supplémentaires sur \texttt{removeOne} et \texttt{removeAll}.
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_11\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{multiplicity} \coqdocvar{x} (\coqdocvar{removeOne} \coqdocvar{x} (\coqdocvar{singleton} \coqdocvar{x})) = 0.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_12\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{multiplicity} \coqdocvar{x} (\coqdocvar{removeAll} \coqdocvar{x} (\coqdocvar{singleton} \coqdocvar{x})) = 0.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_13\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{l} \coqdocvar{n}, \coqdocvar{multiplicity} \coqdocvar{x} \coqdocvar{l} = \coqdocvar{n} \ensuremath{\rightarrow} \coqdocvar{n} > 1 \ensuremath{\rightarrow} \coqdocvar{multiplicity} \coqdocvar{x} (\coqdocvar{removeOne} \coqdocvar{x} \coqdocvar{l}) = \coqdocvar{n}-1.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_14\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{l}, \coqdockw{wf} \coqdocvar{l} \ensuremath{\rightarrow} \~{}(\coqdocvar{InMultiset} \coqdocvar{x} (\coqdocvar{removeAll} \coqdocvar{x} \coqdocvar{l})).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_15\_1} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{l}, \coqdocvar{multiplicity} \coqdocvar{x} \coqdocvar{l} > 1 \ensuremath{\rightarrow} \coqdocvar{InMultiset} \coqdocvar{x} (\coqdocvar{removeOne} \coqdocvar{x} \coqdocvar{l}).\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\end{coqdoccode}
+
+\newpage
+
+\subsection{Implantation Fonctionnelle des multi-ensembles\\}
+
+\paragraph{Question 1}
+
+On définit ici un multi-ensemble comme une fonction qui encode les multiplicités, de la manière suivante :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{multiset\_2} := \coqdocvar{T} \ensuremath{\rightarrow} \coqdocvar{nat}.\coqdoceol
+\coqdocnoindent
+\coqdocemptyline
+\end{coqdoccode}
+
+\noindent Voici les signatures des différentes fonctions demandées dans l'énoncé :
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{empty\_2} :
+\coqdocvar{multiset\_2}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{singleton\_2} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{add\_2} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{nat} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{member\_2} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2} \ensuremath{\rightarrow}
+\coqdocvar{bool}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{union\_2} :
+\coqdocvar{multiset\_2} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{multiplicity\_2} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2} \ensuremath{\rightarrow}
+\coqdocvar{nat}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{removeOne\_2} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2}
+\end{coqdoccode}
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdocvar{removeAll\_2} :
+\coqdocvar{T} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2} \ensuremath{\rightarrow}
+\coqdocvar{multiset\_2}
+\end{coqdoccode}
+
+\paragraph{Question 2}
+
+On définit le préedicat \texttt{InMultiset\_2} de la manière suivante :\\
+
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{InMultiset\_2} (\coqdocvar{x}:\coqdocvar{T}) (\coqdocvar{l}:\coqdocvar{multiset\_2}) : \coqdockw{Prop} := \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{inMultiset\_2\_intro} : \coqdocvar{member\_2} \coqdocvar{x} \coqdocvar{l} = \coqdocvar{true} \ensuremath{\rightarrow} \coqdocvar{InMultiset\_2} \coqdocvar{x} \coqdocvar{l}.\coqdoceol
+\coqdocemptyline
+\end{coqdoccode}
+
+\paragraph{Question 3}
+
+On démontre maintenant les différents théorèmes indiqués dans l’énoncé ainsi que ceux sur les fonctions \texttt{removeOne} et \texttt{removeAll}. 1 lemme intermédiaire a été créé.
+
+\noindent\begin{coqdoccode}
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_1\_2} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{x} : \coqdocvar{T}), \ensuremath{\lnot}\coqdocvar{InMultiset\_2} \coqdocvar{x} \coqdocvar{empty\_2}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_2\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{y} , \coqdocvar{InMultiset\_2} \coqdocvar{y} (\coqdocvar{singleton\_2} \coqdocvar{x}) \ensuremath{\leftrightarrow} \coqdocvar{x} = \coqdocvar{y}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_3\_2} :\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{multiplicity\_2} \coqdocvar{x} (\coqdocvar{singleton\_2} \coqdocvar{x}) = 1.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_4\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{s}, \coqdocvar{member\_2} \coqdocvar{x} \coqdocvar{s} = \coqdocvar{true} \ensuremath{\leftrightarrow} \coqdocvar{InMultiset\_2} \coqdocvar{x} \coqdocvar{s}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_5\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}, \coqdocvar{n} > 0 \ensuremath{\rightarrow} \coqdocvar{InMultiset\_2} \coqdocvar{x} (\coqdocvar{add\_2} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_6\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{y} \coqdocvar{s}, \coqdocvar{x} \ensuremath{\not=} \coqdocvar{y} \ensuremath{\rightarrow} (\coqdocvar{InMultiset\_2} \coqdocvar{y} (\coqdocvar{add\_2} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}) \ensuremath{\leftrightarrow} \coqdocvar{InMultiset\_2} \coqdocvar{y} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Lemma} \coqdocvar{proof\_7\_2\_1}: \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{s}, \coqdocvar{s} \coqdocvar{x} \ensuremath{\not=} 0 \ensuremath{\rightarrow} \coqdocvar{InMultiset\_2} \coqdocvar{x} \coqdocvar{s}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_7\_2\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{s}, \coqdocvar{multiplicity\_2} \coqdocvar{x} \coqdocvar{s} = 0 \ensuremath{\leftrightarrow} \ensuremath{\lnot}\coqdocvar{InMultiset\_2} \coqdocvar{x} \coqdocvar{s}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_8\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}, \coqdocvar{multiplicity\_2} \coqdocvar{x} (\coqdocvar{add\_2} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}) = \coqdocvar{n} + (\coqdocvar{multiplicity\_2} \coqdocvar{x} \coqdocvar{s}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_9\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{n} \coqdocvar{y} \coqdocvar{s}, \coqdocvar{x} \ensuremath{\not=} \coqdocvar{y} \ensuremath{\rightarrow} \coqdocvar{multiplicity\_2} \coqdocvar{y} (\coqdocvar{add\_2} \coqdocvar{x} \coqdocvar{n} \coqdocvar{s}) = \coqdocvar{multiplicity\_2} \coqdocvar{y} \coqdocvar{s}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_10\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{t} \coqdocvar{x}, (\coqdocvar{InMultiset\_2} \coqdocvar{x} (\coqdocvar{union\_2} \coqdocvar{s} \coqdocvar{t}) \ensuremath{\leftrightarrow} \coqdocvar{InMultiset\_2} \coqdocvar{x} \coqdocvar{s} \ensuremath{\lor} \coqdocvar{InMultiset\_2} \coqdocvar{x} \coqdocvar{t}).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_11\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{multiplicity\_2} \coqdocvar{x} (\coqdocvar{removeOne\_2} \coqdocvar{x} (\coqdocvar{singleton\_2} \coqdocvar{x})) = 0.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_12\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{multiplicity\_2} \coqdocvar{x} (\coqdocvar{removeAll\_2} \coqdocvar{x} (\coqdocvar{singleton\_2} \coqdocvar{x})) = 0.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_13\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{l} \coqdocvar{n}, \coqdocvar{multiplicity\_2} \coqdocvar{x} \coqdocvar{l} = \coqdocvar{n} \ensuremath{\rightarrow} \coqdocvar{n} > 1 \ensuremath{\rightarrow} \coqdocvar{multiplicity\_2} \coqdocvar{x} (\coqdocvar{removeOne\_2} \coqdocvar{x} \coqdocvar{l}) = \coqdocvar{n}-1.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_14\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{l}, \~{}(\coqdocvar{InMultiset\_2} \coqdocvar{x} (\coqdocvar{removeAll\_2} \coqdocvar{x} \coqdocvar{l})).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{proof\_15\_2} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{l}, \coqdocvar{multiplicity\_2} \coqdocvar{x} \coqdocvar{l} > 1 \ensuremath{\rightarrow} \coqdocvar{InMultiset\_2} \coqdocvar{x} (\coqdocvar{removeOne\_2} \coqdocvar{x} \coqdocvar{l}).\coqdoceol
+\end{coqdoccode}
+\end{document}
