@@ -14,11 +14,11 @@ Inductive list (A : Type) : Type :=
 >>
 **)
 
-(** Variable A : Type.**)
-Definition A := nat.
+Variable A : Type.
+(**Definition A := nat.**)
 
-(** Hypothesis dec_A : forall (x y : A), ({x=y}+{~x=y}). **)
-Definition dec_A := Nat.eq_dec.
+Hypothesis dec_A : forall (x y : A), ({x=y}+{~x=y}). 
+(**Definition dec_A := Nat.eq_dec.**)
 
 (** Question 1 **)
 
@@ -128,6 +128,7 @@ Fixpoint map (f : A -> A) (l : list A) :=
 
 (** Eval compute in (map (fun x => x+1) (cons 4 (cons 4 (cons 3 (cons 1 (cons 2 (cons 4 nil))))))). **)
 
+(*
 Theorem occ_map : exists (f : A -> A) (x : A) (l : list A),
 occ (f x) (map f l) <> occ x l.
 Proof.
@@ -139,7 +140,7 @@ Proof.
  intros H.
  discriminate H.
 Qed.
-
+*)
 (** Question 5 **)
 
 Inductive mem : A -> list A -> Prop :=
@@ -150,8 +151,20 @@ Theorem mem_diff : forall (l : list A) (x : A) (y : A), mem x (cons y l) -> x <>
 Proof.
  intros l x y H1.
  induction l.
- Focus 2.
-Admitted.
+ intros H.
+ inversion H1.
+ contradiction.
+ assumption.
+ intros H.
+ inversion H1.
+ apply mem_tail.
+ rewrite <- H3.
+ apply IHl.
+ rewrite H3.
+ apply mem_cons.
+ assumption.
+ assumption.
+Qed.
 
 Theorem mem_null_1 : forall (l : list A) (x : A), occ x l = 0 -> ~(mem x l).
 Proof.
@@ -182,6 +195,12 @@ Proof.
  contradiction.
 Qed.
 
+Theorem mem_cons_proof : forall (l : list A) (x : A), mem x (x :: l).
+Proof.
+intros l x.
+apply mem_cons.
+Qed.
+
 Theorem mem_null_2 : forall (l : list A) (x : A), ~(mem x l) -> occ x l = 0.
 Proof.
  intros l x H.
@@ -193,12 +212,16 @@ Proof.
  case_eq (dec_A a x).
  intros e H2.
  rewrite e in H.
- simpl in H.
- unfold not in H.
- unfold not in IHl.
- destruct H.
- destruct IHl.
-Admitted.
+ pose(H3:= mem_cons x l).
+ pose(H':=H H3).
+ destruct H'.
+ intros n H1.
+ apply IHl.
+ intros H2.
+ apply mem_tail with (y:=a) in H2.
+ apply H.
+ assumption.
+Qed.
 
 (** Question 6 **)
 
@@ -208,27 +231,75 @@ Inductive nodup : list A -> Prop :=
 
 Theorem doublon_1 : forall (l : list A) (x : A), nodup l -> occ x l <= 1.
 Proof.
- intros l x.
+ intros l x H.
  induction l.
  simpl.
- intros H.
- apply (lt_n_Sm_le 0 1).
- auto.
+ omega.
+ inversion H.
+ unfold not in H2.
  simpl.
- intros H5.
  case_eq (dec_A a x).
- intros e H6.
+ intros e H4.
+ pose (H':=IHl H3).
+ rewrite e in H2.
+ apply mem_null_2 in H2.
+ rewrite H2.
+ omega.
+ intros n H4.
+ apply IHl.
+ assumption.
+Qed.
+
+Theorem doublon_2_1 : forall (l : list A) (x : A) (a : A), a <> x -> nodup l -> nodup (a::l).
+Proof.
+intros l x a H1 H2.
+apply nodup_tail.
+unfold not.
+intros H3.
 Admitted.
 
+Theorem doublon_2 : forall (l : list A) (x : A), occ x l <= 1 -> nodup l.
+Proof.
+ intros l.
+ induction l.
+ intros x H.
+ apply nodup_nil.
+ intros x H.
+ simpl in H.
+ case_eq(dec_A a x).
+ intros e H1.
+ rewrite H1 in H.
+ apply (nodup_tail).
+ unfold not.
+ intros H2.
+ case_eq(Nat.eq_dec (occ x l) 0).
+ intros e0 H3.
+ pose(H4:=mem_null_1 l x).
+ pose(H5:=H4 e0).
+ rewrite <- e in H5.
+ contradiction.
+ intros n H3.
+ omega.
+ apply (IHl x).
+ omega.
+ intros n H1.
+ apply nodup_tail.
+ unfold not.
+ intros H2.
+ rewrite H1 in H.
+ pose(H':=IHl x).
+ pose(H'':=H' H).
+ inversion H2.
+Admitted.
 
 (** Exercice 2  (Implantation des multi-ensembles) **)
 
 
-(** Variable T : Type.**)
-Definition T := nat.
+Variable T : Type.
+(**Definition T := nat.**)
 
-(** Hypothesis T_eq_dec : forall (x y : T), {x=y} + {~x=y}.**)
-Definition T_eq_dec := Nat.eq_dec.
+Hypothesis T_eq_dec : forall (x y : T), {x=y} + {~x=y}.
+(**Definition T_eq_dec := Nat.eq_dec.**)
 
 (** Rappel :
 
@@ -702,7 +773,9 @@ Proof.
  simpl in H0.
  case_eq (T_eq_dec y x).
  intros e H3.
- omega.
+ pose(e':=e).
+ symmetry in e'.
+ contradiction.
  intros n0 H4.
  rewrite H4 in H0.
  discriminate H0.
@@ -718,7 +791,9 @@ Proof.
  simpl.
  case_eq (T_eq_dec y t).
  intros e.
- omega.
+ pose(e':=e).
+ symmetry in e'.
+ contradiction.
  intros n2 H4.
  simpl in H2.
  case_eq (le_lt_dec n 0).
@@ -788,12 +863,17 @@ Proof.
  simpl.
  case_eq (T_eq_dec y x).
  intros e0.
- omega.
+ pose(e':=e0).
+ symmetry in e'.
+ contradiction.
  intros n1 H4.
  simpl in H0.
  case_eq (T_eq_dec y t).
  intros e0 H5.
- omega.
+ rewrite e0 in H.
+ pose(e':=e).
+ symmetry in e'.
+ contradiction.
  intros n2 H5.
  rewrite H5 in H0.
  assumption.
@@ -808,7 +888,10 @@ Proof.
  simpl in H0.
  case_eq (T_eq_dec y t).
  intros e1 H6.
- omega.
+ rewrite e1 in H.
+ pose(e':=e).
+ symmetry in e'.
+ contradiction.
  intros n2 H6.
  rewrite H6 in H0.
  assumption.
@@ -869,12 +952,13 @@ case_eq (T_eq_dec t t).
 intros e0 H2.
 rewrite e.
 simpl.
-case_eq (T_eq_dec t t).
+rewrite H2.
 reflexivity.
 intros n0.
-omega.
-intros n0.
-omega.
+unfold not in n0.
+intros H2.
+rewrite e in H1.
+contradiction.
 intros n0 H1.
 simpl.
 rewrite H1.
@@ -903,7 +987,7 @@ unfold not in H2.
 destruct well_formed_proof_of_l.
 pose (H3:= H x).
 destruct H3.
-case_eq (T_eq_dec (multiplicity x s) 0).
+case_eq (Nat.eq_dec (multiplicity x s) 0).
 intros e H3.
 exact e.
 intros n H3.
@@ -917,23 +1001,120 @@ Qed.
 Theorem proof_8_1 : forall x n s, multiplicity x (add x n s) = n + (multiplicity x s).
 Proof.
 intros x n s.
-induction n.
-simpl.
-Admitted.
-
-Theorem proof_9_1 : forall x n y s, x <> y -> wf s ->multiplicity y (add x n s) = multiplicity y s.
-Proof.
-intros x n y s H H2.
 induction s.
 simpl.
-destruct (le_lt_dec n 0).
-simpl. reflexivity.
+case_eq(le_lt_dec n 0).
+intros l H1.
 simpl.
-destruct (T_eq_dec y x).
-symmetry in e.
+omega.
+intros l H1.
+simpl.
+case_eq(T_eq_dec x x).
+intros e H2.
+omega.
 contradiction.
-reflexivity.
+destruct a.
+case_eq (T_eq_dec x t).
+intros e H1.
+rewrite e.
 simpl.
+case_eq (le_lt_dec n 0).
+intros l H2.
+simpl.
+omega.
+intros l H2.
+case_eq (T_eq_dec t t).
+intros e0 H3.
+simpl.
+rewrite H3.
+omega.
+contradiction.
+intros n1 H1.
+simpl.
+case_eq (le_lt_dec n 0).
+intros l H2.
+simpl.
+omega.
+intros l H2.
+rewrite H1.
+simpl.
+rewrite H1.
+assumption.
+Qed.
+
+Theorem proof_9_1_1 : forall a s, wf (a :: s) -> wf s.
+Proof.
+intros a s.
+induction s.
+intros H.
+apply wf_intro.
+intros x.
+split.
+simpl.
+intros H1.
+inversion H1.
+simpl in H0.
+discriminate H0.
+intros H1.
+simpl in H1.
+discriminate H1.
+intros H.
+pose(s':=a0::s).
+pose (H':=H).
+Admitted.
+
+
+
+Theorem proof_9_1_2 : forall x n y s, x <> y -> wf s ->multiplicity y (add x n s) = multiplicity y s.
+Proof.
+intros x n y s H H2.
+inversion H2.
+pose(H':=H0 x).
+destruct H'.
+induction s.
+simpl.
+case_eq (le_lt_dec n 0).
+intros l H4.
+simpl.
+reflexivity.
+intros l H4.
+simpl.
+case_eq(T_eq_dec y x).
+intros e.
+pose(e':=e).
+symmetry in e'.
+contradiction.
+intros n0 H5.
+reflexivity.
+destruct a.
+simpl.
+case_eq(le_lt_dec n 0).
+intros l H4.
+simpl.
+omega.
+intros l H4.
+case_eq(T_eq_dec x t).
+intros e H5.
+simpl.
+case_eq(T_eq_dec y t).
+intros e0.
+rewrite e0 in H.
+contradiction.
+intros n1 H6.
+reflexivity.
+intros n1 H5.
+simpl.
+case_eq(T_eq_dec y t).
+reflexivity.
+intros n2 H6.
+apply IHs.
+apply wf_intro.
+intros x0.
+split.
+simpl in H1.
+rewrite H5 in H1.
+intros H7.
+inversion H7.
 Admitted.
 
 
@@ -989,7 +1170,7 @@ Print add_2.
 
 (** member_2 x s retourne la valeur true si x a au moins une occurrence dans s, false sinon. **)
 Definition member_2 (x:T) (s:multiset_2) : bool := 
-  match T_eq_dec (s x) 0 with
+  match Nat.eq_dec (s x) 0 with
   | left _ => false
   | right _ => true
   end.
@@ -1095,7 +1276,8 @@ Proof.
  intros H1 H2.
  rewrite H1 in H0.
  destruct H0.
- omega.
+ symmetry.
+ assumption.
  intros H1 H2.
  rewrite H2 in H0.
  simpl in H0.
@@ -1106,10 +1288,10 @@ Proof.
  unfold singleton_2.
  rewrite H0.
  destruct (T_eq_dec y y).
- destruct (T_eq_dec 1 0).
+ destruct (Nat.eq_dec 1 0).
  discriminate e0.
  reflexivity.
- destruct (T_eq_dec 0 0).
+ destruct (Nat.eq_dec 0 0).
  contradiction.
  reflexivity.
 Qed.
@@ -1119,10 +1301,11 @@ Proof.
  intros x.
  unfold multiplicity_2.
  unfold singleton_2.
- destruct (T_eq_dec x x).
+ case_eq (T_eq_dec x x).
  reflexivity.
- omega.
-Qed.
+ intros n H.
+ unfold not in n.
+Admitted.
 
 Theorem proof_4_2 : forall x s, member_2 x s = true <-> InMultiset_2 x s.
 Proof.
@@ -1146,7 +1329,7 @@ unfold member_2.
 unfold add_2.
 case_eq (T_eq_dec x x).
 intros e H1.
-case_eq (T_eq_dec (s x + n) 0).
+case_eq (Nat.eq_dec (s x + n) 0).
 intros e0 H2.
 omega.
 intros n0 H2.
@@ -1167,12 +1350,14 @@ Proof.
  apply inMultiset_2_intro.
  unfold member_2.
  unfold member_2 in H0.
- case_eq (T_eq_dec (s y) 0).
+ case_eq (Nat.eq_dec (s y) 0).
  intros e H3.
  unfold add_2 in H0.
  case_eq (T_eq_dec y x).
  intros e0.
- omega.
+ pose(e0':=e0).
+ symmetry in e0'.
+ contradiction.
  intros n0 H4.
  rewrite H4 in H0.
  rewrite e in H0.
@@ -1188,7 +1373,9 @@ Proof.
  unfold add_2.
  case_eq (T_eq_dec y x ).
  intros e H2.
- omega.
+ pose(e0':=e).
+ symmetry in e0'.
+ contradiction.
  intros n0 H2.
  exact H0.
 Qed.
@@ -1199,7 +1386,7 @@ intros x s.
 intros H.
 apply inMultiset_2_intro.
 unfold member_2.
-case_eq (T_eq_dec (s x) 0).
+case_eq (Nat.eq_dec (s x) 0).
 intros e H1.
 contradiction.
 intros n H1.
@@ -1223,7 +1410,7 @@ Proof.
  unfold not.
  intros H.
  unfold multiplicity_2.
- case_eq (T_eq_dec (s x) 0).
+ case_eq (Nat.eq_dec (s x) 0).
  intros e H1.
  exact e.
  intros n H1.
@@ -1250,7 +1437,9 @@ intros x n y s H.
 unfold multiplicity_2.
 unfold add_2.
 destruct (T_eq_dec y x).
-omega.
+pose(e0':=e).
+symmetry in e0'.
+contradiction.
 reflexivity.
 Qed.
 
@@ -1263,12 +1452,12 @@ Proof.
  inversion H.
  unfold member_2 in H0.
  unfold union_2 in H0.
- case_eq (T_eq_dec (s x) 0).
+ case_eq (Nat.eq_dec (s x) 0).
  intros e H1.
  right.
  rewrite e in H0.
  simpl in H0.
- case_eq (T_eq_dec (t x) 0).
+ case_eq (Nat.eq_dec (t x) 0).
  intros e0 H2.
  rewrite H2 in H0.
  discriminate H0.
@@ -1277,7 +1466,7 @@ Proof.
  unfold member_2.
  rewrite H2.
  reflexivity.
- case_eq (T_eq_dec (s x + t x) 0).
+ case_eq (Nat.eq_dec (s x + t x) 0).
  intros e H1.
  rewrite H1 in H0.
  discriminate H0.
@@ -1296,13 +1485,13 @@ Proof.
  apply inMultiset_2_intro.
  unfold member_2.
  unfold union_2.
- case_eq (T_eq_dec (s x) 0).
+ case_eq (Nat.eq_dec (s x) 0).
  intros e H1.
  rewrite e in H0.
  simpl in H0.
  discriminate H0.
  intros n H1.
- case_eq (T_eq_dec (s x + t x) 0).
+ case_eq (Nat.eq_dec (s x + t x) 0).
  intros e.
  omega.
  intros n0 H2.
@@ -1312,13 +1501,13 @@ Proof.
  apply inMultiset_2_intro.
  unfold member_2.
  unfold union_2.
- case_eq (T_eq_dec (t x) 0).
+ case_eq (Nat.eq_dec (t x) 0).
  intros e H1.
  rewrite e in H0.
  simpl in H0.
  discriminate H0.
  intros n H1.
- case_eq (T_eq_dec (s x + t x) 0).
+ case_eq (Nat.eq_dec (s x + t x) 0).
  intros e.
  omega.
  intros n0 H2.
