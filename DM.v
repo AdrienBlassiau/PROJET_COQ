@@ -250,14 +250,6 @@ Proof.
  assumption.
 Qed.
 
-Theorem doublon_2_1 : forall (l : list A) (x : A) (a : A), a <> x -> nodup l -> nodup (a::l).
-Proof.
-intros l x a H1 H2.
-apply nodup_tail.
-unfold not.
-intros H3.
-Admitted.
-
 Theorem doublon_2 : forall (l : list A) (x : A), occ x l <= 1 -> nodup l.
 Proof.
  intros l.
@@ -266,7 +258,7 @@ Proof.
  apply nodup_nil.
  intros x H.
  simpl in H.
- case_eq(dec_A a x).
+ case_eq (dec_A a x).
  intros e H1.
  rewrite H1 in H.
  apply (nodup_tail).
@@ -516,73 +508,135 @@ Proof.
   discriminate H2.
 Qed. 
 
-Lemma union_add : forall (x:T) (n:nat) (l: multiset), union l ((x,n)::empty) = add x n l.
+Lemma plus_n_0 : forall n, n + O = n.
 Proof.
+induction n.
++  simpl. reflexivity.
++ simpl. rewrite IHn. reflexivity.
+Qed.
 
-Admitted.
 
-Lemma union_assoc : forall (l1: multiset) (l2: multiset) (l3: multiset), union (union l1 l2) l3 = union l1 (union l2 l3).
+Lemma wf_plus_n : forall t n0 n l, wf ((t, n0) :: l) -> wf ((t, n0+n) :: l).
 Proof.
-Admitted.
-
-(** Lemma member_lemma : forall (x:T) (m: multiset) (x':T) (a:nat), member x (removeAll x m) = member x (removeAll x ((x',a) :: m)).
-Proof.
-intros x m x' a.
+intros t n0 n l.
+intros H.
+induction n.
+rewrite plus_n_0.
+assumption.
+apply wf_intro.
+intros x.
+split.
 simpl.
-case_eq (T_eq_dec x x').
-intros e H.
-rewrite e.
-induction m.
+case_eq(T_eq_dec x t).
+intros e H1.
+intros H2.
+inversion H2.
+rewrite e in H0.
+inversion IHn.
+pose(H4:=H3 x).
+destruct H4.
+simpl in H4.
+rewrite H1 in H4.
+pose(H6:=H4 H2).
+destruct H6.
+intros n1 H1.
+intros H2.
+inversion H2.
+simpl in H0.
+rewrite H1 in H0.
+inversion H.
+pose(H4:=H3 x).
+destruct H4.
+simpl in H4.
+rewrite H1 in H4.
+apply H4.
+apply inMultiset_intro.
 simpl.
-case_eq (T_eq_dec x x').
-intros e H.
+rewrite H1.
+exact H0.
+intros H1.
+simpl in H1.
+case_eq(T_eq_dec x t).
+intros e H2.
 simpl.
+rewrite H2.
+omega.
+intros n1 H2.
+rewrite H2 in H1.
+simpl.
+rewrite H2.
+inversion H.
+pose(H3:=H0 x).
+destruct H3.
+simpl in H4.
+rewrite H2 in H4.
+rewrite H1 in H4.
+apply H4.
 reflexivity.
-intros n H.
-simpl.
-case_eq (T_eq_dec x x').
-intros e.
-contradiction.
-intros n0 H1.
-reflexivity.
-simpl.
-rewrite (fst a) in x'.
-Admitted. **)
+Qed.
+
 
 (** add preserve-t-elle les propriété de bonne formation ? **)
 Theorem add_wf : forall (x:T) (n:nat) (l: multiset), wf l -> wf (add x n l).
 Proof.
-  intros x n l well_formed_proof.
-  destruct well_formed_proof.
-  apply wf_intro.
-  intros x0.
-  split.
-  pose (H1 := H x).
-  pose (H2 := H x0).
-  destruct H1.
-  destruct H2.
-  induction l.
-  simpl.
-  case_eq (T_eq_dec x0 x).
-  intros e H6.
-  intros H7.
-  inversion H7.
+intros x n l H.
+inversion H.
+pose(H1:=H0 x).
+destruct H1.
+induction l.
+simpl.
+case_eq(le_lt_dec n 0).
+intros l H3.
+assumption.
+intros l H3.
+apply wf_intro.
+intros x0.
+split.
+simpl.
+case_eq(T_eq_dec x0 x).
+intros e H4.
+intros H5.
+inversion H5.
+simpl in H6.
+discriminate H6.
+intros n0 H4.
+intros H5.
+inversion H5.
+simpl in H6.
+rewrite H4 in H6.
+discriminate H6.
+simpl.
+case_eq(T_eq_dec x0 x).
+intros e H4.
+omega.
+intros n0 H4.
+intros H5.
+discriminate H5.
+simpl.
+case_eq(le_lt_dec n 0).
+intros l0 H3.
+assumption.
+intros l0 H3.
+destruct a.
+case_eq(T_eq_dec x t).
+intros e H4.
+apply wf_plus_n.
+assumption.
+intros n1 H4.
+apply wf_intro.
+intros x0.
+split.
+intros H5.
+inversion H5.
+simpl in H6.
+case_eq(T_eq_dec x0 t).
+intros e H7.
+rewrite H7 in H6.
+rewrite e in H6.
+simpl in H2.
+rewrite H4 in H2.
+inversion H5.
 Admitted.
-
-Theorem union_with_nil : forall (l: multiset), union nil l = l.
-Proof.
-intros l.
-simpl.
-reflexivity.
-Qed.
-
-
-Theorem union_with_nil_3 : forall (a: T*nat) (l: multiset), union nil (a :: l) = a :: l.
-Proof.
-intros a l.
-simpl.
-reflexivity.
-Qed.
 
 (** union preserve-t-elle les propriété de bonne formation ? **)
 Theorem union_wf : forall (l: multiset) (l': multiset), wf l -> wf l' -> wf (union l l').
@@ -602,35 +656,46 @@ Admitted.
 (** removeOne preserve-t-elle les propriété de bonne formation ? **)
 Theorem removeOne_wf: forall (x: T) (l: multiset), wf l -> wf (removeOne x l).
 Proof.
-intros x l.
-intros well_formed_proof_of_l.
-apply wf_intro.
-intros x0.
-destruct well_formed_proof_of_l.
-pose (H1:= H x0).
-destruct H1.
-split.
+intros x l H.
 induction l.
 simpl.
-intros H2.
-inversion H2.
+assumption.
+destruct a.
+simpl.
+case_eq(T_eq_dec x t).
+intros e H1.
+case_eq(le_lt_dec n 1).
+intros l0 H2.
+apply wf_intro.
+intros x0.
+split.
+intros H3.
+inversion H. 
 Admitted.
 
 (** removeAll_wf preserve-t-elle les propriété de bonne formation ? **)
 Theorem removeAll_wf: forall (x: T) (l: multiset), wf l -> wf (removeAll x l).
 Proof.
-intros x l.
-intros well_formed_proof_of_l.
-apply wf_intro.
-intros x0.
-destruct well_formed_proof_of_l.
-pose (H1:= H x0).
-destruct H1.
-split.
+intros x l H.
 induction l.
 simpl.
-intros H2.
-inversion H2.
+assumption.
+destruct a.
+simpl.
+case_eq(T_eq_dec x t).
+intros e H1.
+inversion H.
+pose(H':=H0 x).
+destruct H'.
+apply wf_intro.
+intros x0.
+split.
+intros H4.
+inversion H4.
+case IHl.
+apply wf_intro.
+intros x1.
+split.
 Admitted.
 
 Theorem proof_1_1 : forall (x : T), ~InMultiset x empty.
@@ -1042,30 +1107,7 @@ rewrite H1.
 assumption.
 Qed.
 
-Theorem proof_9_1_1 : forall a s, wf (a :: s) -> wf s.
-Proof.
-intros a s.
-induction s.
-intros H.
-apply wf_intro.
-intros x.
-split.
-simpl.
-intros H1.
-inversion H1.
-simpl in H0.
-discriminate H0.
-intros H1.
-simpl in H1.
-discriminate H1.
-intros H.
-pose(s':=a0::s).
-pose (H':=H).
-Admitted.
-
-
-
-Theorem proof_9_1_2 : forall x n y s, x <> y -> wf s ->multiplicity y (add x n s) = multiplicity y s.
+Theorem proof_9_1 : forall x n y s, x <> y -> wf s ->multiplicity y (add x n s) = multiplicity y s.
 Proof.
 intros x n y s H H2.
 inversion H2.
@@ -1117,6 +1159,126 @@ intros H7.
 inversion H7.
 Admitted.
 
+Theorem proof_10_1 : forall s t x, wf s -> wf t ->(InMultiset x (union s t) <-> InMultiset x s \/ InMultiset x t).
+Proof.
+intros s t x H1 H2.
+pose(H':=union_wf s t H1 H2).
+unfold iff.
+split.
+intros H3.
+inversion H3.
+inversion H1.
+pose (H4:=H0 x).
+destruct H4.
+Admitted.
+
+Theorem proof_11_1 : forall x, multiplicity x (removeOne x (singleton x)) = 0.
+Proof.
+intros x.
+simpl.
+case_eq(T_eq_dec x x ).
+intros e H.
+simpl.
+reflexivity.
+contradiction.
+Qed.
+
+Theorem proof_12_1 : forall x, multiplicity x (removeAll x (singleton x)) = 0.
+Proof.
+intros x.
+simpl.
+case_eq(T_eq_dec x x ).
+intros e H.
+simpl.
+reflexivity.
+contradiction.
+Qed.
+
+Theorem proof_13_1 : forall x l n, multiplicity x l = n -> n > 1 -> multiplicity x (removeOne x l) = n-1.
+Proof.
+intros x l n H1 H2.
+induction l.
+simpl.
+simpl in H1.
+omega.
+destruct a.
+simpl.
+case_eq(T_eq_dec x t).
+intros e H3.
+case_eq(le_lt_dec n0 1).
+intros l0 H4.
+rewrite e in H1.
+simpl in H1.
+case_eq (T_eq_dec t t).
+intros e0 H5.
+rewrite H5 in H1.
+omega.
+contradiction.
+intros l0 H4.
+simpl.
+rewrite H3.
+rewrite e in H1.
+simpl in H1.
+case_eq(T_eq_dec t t).
+intros e0 H5.
+rewrite H5 in H1.
+rewrite H1.
+reflexivity.
+contradiction.
+intros n1 H3.
+simpl.
+rewrite H3.
+apply IHl.
+simpl in H1.
+rewrite H3 in H1.
+assumption.
+Qed.
+
+Theorem proof_14_1 : forall x l, wf l -> ~(InMultiset x (removeAll x l)).
+Proof.
+intros x l H1.
+unfold not.
+intros H2.
+inversion H2.
+inversion H1.
+pose(H':=H0 x).
+destruct H'.
+pose(H5:=H3 H2).
+destruct H5.
+Qed.
+
+Theorem proof_15_1 : forall x l, multiplicity x l > 1 -> InMultiset x (removeOne x l).
+Proof.
+intros x l H1.
+apply inMultiset_intro.
+induction l.
+simpl in H1.
+omega.
+destruct a.
+simpl.
+case_eq(T_eq_dec x t).
+intros e H3.
+case_eq(le_lt_dec n 1).
+intros l0 H4.
+rewrite e in H1.
+simpl in H1.
+case_eq (T_eq_dec t t).
+intros e0 H5.
+rewrite H5 in H1.
+omega.
+contradiction.
+intros l0 H4.
+simpl.
+rewrite H3.
+reflexivity.
+intros n0 H3.
+simpl.
+rewrite H3.
+apply IHl.
+simpl in H1.
+rewrite H3 in H1.
+assumption.
+Qed.
 
 (**********************************************************)
 (****2.2 Implantation Fonctionnelle des multi-ensembles****)
@@ -1305,7 +1467,7 @@ Proof.
  reflexivity.
  intros n H.
  contradiction.
-Qed.
+Admitted.
 
 Theorem proof_4_2 : forall x s, member_2 x s = true <-> InMultiset_2 x s.
 Proof.
@@ -1514,13 +1676,100 @@ Proof.
  reflexivity.
 Qed.
 
+Theorem proof_11_2 : forall x, multiplicity_2 x (removeOne_2 x (singleton_2 x)) = 0.
+Proof.
+intros x.
+unfold multiplicity_2.
+unfold removeOne_2.
+case(T_eq_dec x x).
+intros H.
+unfold member_2.
+case_eq(Nat.eq_dec (singleton_2 x x) 0).
+intros e H1.
+reflexivity.
+intros n H1.
+unfold singleton_2 in n.
+unfold singleton_2.
+case_eq(T_eq_dec x x).
+intros e H2.
+omega.
+contradiction.
+contradiction.
+Qed.
 
+Theorem proof_12_2 : forall x, multiplicity_2 x (removeAll_2 x (singleton_2 x)) = 0.
+Proof.
+intros x.
+unfold multiplicity_2.
+unfold removeAll_2.
+destruct (T_eq_dec x x).
+reflexivity.
+contradiction.
+Qed.
 
+Theorem proof_13_2 : forall x l n, multiplicity_2 x l = n -> n > 1 -> multiplicity_2 x (removeOne_2 x l) = n-1.
+Proof.
+intros x l n H1 H2.
+unfold multiplicity_2.
+unfold removeOne_2.
+destruct (T_eq_dec x x).
+unfold member_2.
+case_eq(Nat.eq_dec (l x) 0).
+intros e0 H3.
+unfold multiplicity_2 in H1.
+rewrite e0 in H1.
+omega.
+intros n0 H3.
+unfold multiplicity_2 in H1.
+rewrite H1.
+reflexivity.
+contradiction.
+Qed.
 
+Theorem proof_14_2 : forall x l, ~(InMultiset_2 x (removeAll_2 x l)).
+Proof.
+intros x l.
+unfold not.
+intros H.
+inversion H.
+unfold member_2 in H0.
+case_eq(Nat.eq_dec (removeAll_2 x l x) 0).
+intros e H1.
+rewrite H1 in H0.
+discriminate H0.
+intros n H1.
+unfold removeAll_2 in n.
+case_eq(T_eq_dec x x).
+intros e H2.
+pose(n':=n).
+rewrite H2 in n'.
+contradiction.
+contradiction.
+Qed.
 
-
-
-
+Theorem proof_15_2 : forall x l, multiplicity_2 x l > 1 -> InMultiset_2 x (removeOne_2 x l).
+Proof.
+intros x l H.
+apply inMultiset_2_intro.
+unfold member_2.
+unfold removeOne_2.
+case_eq(T_eq_dec x x).
+intros e H1.
+unfold member_2.
+case(Nat.eq_dec (l x) 0).
+intros H2.
+unfold multiplicity_2 in H.
+rewrite H2 in H.
+omega.
+intros H2.
+case_eq(Nat.eq_dec (l x - 1) 0).
+intros e0 H3.
+unfold multiplicity_2 in H.
+omega.
+intros n H3.
+reflexivity.
+contradiction.
+Qed.
 
 
 
