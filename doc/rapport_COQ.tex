@@ -108,8 +108,8 @@
 \begin{document}
 \maketitle
 
-Avant de commencer les deux exercices, on importe tout d'abord le module \texttt{List} comme demandé. On importe aussi \texttt{Omega} qui fournit la tactique \textbf{omega} qui se révèle très pratique pour la gestion des expressions arithmétiques. À noter que l'on peut très bien faire sans (en utilisant des lemmes du module \texttt{Arith.Gt}, \texttt{Arith.Lt}, etc) mais cela permet de réduire de quelques lignes les preuves ...\\\\
-\noindent Les théorèmes admis sont notés en \textcolor{red}{rouge}.
+Avant de commencer les deux exercices, on importe tout d'abord le module \texttt{List} comme demandé. On importe aussi \texttt{Omega} qui fournit la tactique \textbf{omega} qui se révèle être très pratique pour la gestion des expressions arithmétiques. À noter que l'on peut très bien faire sans (en utilisant des lemmes du module \texttt{Arith.Gt}, \texttt{Arith.Lt}, etc) mais cela permet de réduire de quelques lignes les preuves ...\\\\
+\noindent Les théorèmes admis (donc ceux que nous n'avons pas réussi à démontrer) sont notés en \textcolor{red}{rouge}.
 
 \section{Exercice 1 : Listes et comptage}
 
@@ -157,7 +157,7 @@ On démontre le théorème suivant :
 \noindent\begin{coqdoccode}
 \coqdocemptyline
 \coqdocnoindent
-\coqdockw{Theorem} \coqdocvar{occ\_filter\_2} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{P} : \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{bool}) (\coqdocvar{a} : \coqdocvar{A}) \coqdocvar{l},
+\coqdockw{Theorem} \coqdocvar{occ\_filter} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{P} : \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{bool}) (\coqdocvar{a} : \coqdocvar{A}) \coqdocvar{l},
 \coqdocnoindent
 \coqdocvar{occ} \coqdocvar{a} (\coqdocvar{filter} \coqdocvar{P} \coqdocvar{l}) = \coqdockw{if} (\coqdocvar{P} \coqdocvar{a}) \coqdockw{then} \coqdocvar{occ} \coqdocvar{a} \coqdocvar{l} \coqdockw{else} 0.\coqdoceol
 \coqdocemptyline
@@ -323,7 +323,7 @@ On définit ici un multi-ensemble comme une liste de couples (élément, cardina
 
 \paragraph{Question 2. a)}
 
-On définit le préedicat \texttt{InMultiset} de la manière suivante :
+On définit le prédicat \texttt{InMultiset} de la manière suivante :
 
 \noindent\begin{coqdoccode}
 \coqdocemptyline
@@ -350,7 +350,7 @@ On définit le préedicat \texttt{wf} de la manière suivante :
 
 \paragraph{Question 2. c)}
 
-On démontre maintenant la bonne formation de nos nos différente fonctions. 2 lemmes intermédiaires ont été créés.\\
+On démontre maintenant la bonne formation de nos différentes fonctions. 2 lemmes intermédiaires ont été créés.\\
 Nous ne sommes pas parvenus à démonter cette propriété pour 4 fonctions :
 
 \noindent\begin{coqdoccode}

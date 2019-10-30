@@ -74,7 +74,7 @@ Qed.
 (** Question 3 **)
 (****************)
 
-Theorem occ_filter_2 : forall (P : A -> bool) (a : A) l,
+Theorem occ_filter : forall (P : A -> bool) (a : A) l,
 occ a (filter P l) = if (P a) then occ a l else 0.
 Proof.
  intros P a l.
